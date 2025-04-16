@@ -1,0 +1,79 @@
+name: Setup xk6
+description: Install the xk6 CLI tool and add it to the PATH.
+branding:
+  color: orange
+  icon: check-square
+
+inputs:
+  dir:
+    description: The target directory for the installation.
+    default: ~/.local/bin
+
+  xk6-version:
+    description: The semantic version of xk6 to install, or `latest`.
+    default: latest
+
+  cache:
+    description: A value of `true` enables caching of the xk6 binary.
+    default: "true"
+
+outputs:
+  xk6-version:
+    description: The version installed. Useful if `latest` is the input version.
+    value: ${{ steps.setup.outputs.xk6-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: "Set cache for xk6"
+      uses: actions/cache@v4
+      if: ${{ inputs.cache == 'true' && inputs.xk6-version != 'latest' }}
+      id: xk6-cache
+      with:
+        path: ${{ inputs.dir }}/xk6
+        key: ${{ runner.os }}-${{ runner.arch }}-xk6-${{ inputs.xk6-version }}
+
+    - name: Setup xk6
+      shell: bash
+      id: setup
+      run: |
+        VERSION="${{ inputs.xk6-version }}"
+
+        if [ -z "$VERSION" ] || [ "$VERSION" == "latest" ]; then
+            url=$(curl -s -I "https://github.com/grafana/xk6/releases/latest" | grep -i location)
+            VERSION="${url##*v}"
+            VERSION=${VERSION//[[:space:]]/}
+        fi
+
+        OS=""
+
+        case "${{ runner.os }}" in
+        "Linux")
+          OS="linux" ;;
+        "macOS")
+          OS="darwin" ;;
+        "Windows")
+          OS="windows" ;;
+        esac
+
+        ARCH=""
+
+        case "${{ runner.arch }}" in
+        "ARM64") ARCH="arm64" ;;
+        "X64") ARCH="amd64" ;;
+        esac
+
+        mkdir -p ${{ inputs.dir }}
+
+        if [ "$OS" == "windows" ]; then
+          curl -s -L -o /tmp/xk6-$$.zip "https://github.com/grafana/xk6/releases/download/v${VERSION}/xk6_${VERSION}_${OS}_${ARCH}.zip"
+          unzip /tmp/xk6-$$.zip xk6.exe -d ${{ inputs.dir }}
+          rm -f /tmp/xk6-$$.zip
+        else
+          wget -qO - "https://github.com/grafana/xk6/releases/download/v${VERSION}/xk6_${VERSION}_${OS}_${ARCH}.tar.gz" | \
+            tar x -zf - -C ${{ inputs.dir }} xk6
+        fi
+
+        echo ${{ inputs.dir }} >> $GITHUB_PATH
+        echo XK6_EARLY_ACCESS=true >> $GITHUB_ENV
+        echo "xk6-version=$VERSION" >> $GITHUB_OUTPUT
