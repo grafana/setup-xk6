@@ -5,11 +5,19 @@ GitHub action to install the [xk6](https://github.com/grafana/xk6) CLI tool and 
 ## Usage
 
 ```yaml
+      - name: Setup go
+        uses: actions/setup-go@v5
+
       - name: Setup xk6
         uses: grafana/setup-xk6@v0.1.0
 
       - name: Build
+        shell: bash
         run: xk6 build --with github.com/grafana/xk6-example
+
+      - name: Version
+        shell: bash
+        run: ./k6 version
 ```
 
 ## Inputs
