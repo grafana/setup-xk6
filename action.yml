@@ -36,9 +36,10 @@ runs:
     - name: Setup xk6
       shell: bash
       id: setup
+      env:
+        DIR: ${{ inputs.dir }}
+        VERSION: ${{ inputs.xk6-version }}
       run: |
-        VERSION="${{ inputs.xk6-version }}"
-
         if [ -z "$VERSION" ] || [ "$VERSION" == "latest" ]; then
             url=$(curl -s -I "https://github.com/grafana/xk6/releases/latest" | grep -i location)
             VERSION="${url##*v}"
@@ -65,17 +66,17 @@ runs:
         "X64") ARCH="amd64" ;;
         esac
 
-        mkdir -p ${{ inputs.dir }}
+        mkdir -p "$DIR"
 
         if [ "$OS" == "windows" ]; then
           curl -s -L -o /tmp/xk6-$$.zip "https://github.com/grafana/xk6/releases/download/v${VERSION}/xk6_${VERSION}_${OS}_${ARCH}.zip"
-          unzip /tmp/xk6-$$.zip xk6.exe -d ${{ inputs.dir }}
+          unzip /tmp/xk6-$$.zip xk6.exe -d "$DIR"
           rm -f /tmp/xk6-$$.zip
         else
           wget -qO - "https://github.com/grafana/xk6/releases/download/v${VERSION}/xk6_${VERSION}_${OS}_${ARCH}.tar.gz" | \
-            tar x -zf - -C ${{ inputs.dir }} xk6
+            tar x -zf - -C "$DIR" xk6
         fi
 
-        echo ${{ inputs.dir }} >> $GITHUB_PATH
+        echo "$DIR" >> $GITHUB_PATH
         echo XK6_EARLY_ACCESS=true >> $GITHUB_ENV
         echo "xk6-version=$VERSION" >> $GITHUB_OUTPUT
