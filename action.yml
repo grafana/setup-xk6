@@ -43,6 +43,8 @@ runs:
             url=$(curl -s -I "https://github.com/grafana/xk6/releases/latest" | grep -i location)
             VERSION="${url##*v}"
             VERSION=${VERSION//[[:space:]]/}
+        else
+            VERSION="${VERSION##*v}"
         fi
 
         OS=""
