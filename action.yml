@@ -40,6 +40,8 @@ runs:
         DIR: ${{ inputs.dir }}
         VERSION: ${{ inputs.xk6-version }}
       run: |
+        set -euo pipefail
+
         if [ -z "$VERSION" ] || [ "$VERSION" == "latest" ]; then
             url=$(curl -s -I "https://github.com/grafana/xk6/releases/latest" | grep -i location)
             VERSION="${url##*v}"
@@ -66,6 +68,7 @@ runs:
         "X64") ARCH="amd64" ;;
         esac
 
+        DIR="${DIR/\~/$HOME}"
         mkdir -p "$DIR"
 
         if [ "$OS" == "windows" ]; then
@@ -78,5 +81,6 @@ runs:
         fi
 
         echo "$DIR" >> $GITHUB_PATH
-        echo XK6_EARLY_ACCESS=true >> $GITHUB_ENV
         echo "xk6-version=$VERSION" >> $GITHUB_OUTPUT
+
+        echo "::notice::xk6 version $VERSION installed to $DIR"
