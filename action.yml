@@ -66,6 +66,7 @@ runs:
         "X64") ARCH="amd64" ;;
         esac
 
+        DIR="${DIR/\~/$HOME}"
         mkdir -p "$DIR"
 
         if [ "$OS" == "windows" ]; then
