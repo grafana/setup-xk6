@@ -79,5 +79,6 @@ runs:
         fi
 
         echo "$DIR" >> $GITHUB_PATH
-        echo XK6_EARLY_ACCESS=true >> $GITHUB_ENV
         echo "xk6-version=$VERSION" >> $GITHUB_OUTPUT
+
+        echo "::notice::xk6 version $VERSION installed to $DIR"
